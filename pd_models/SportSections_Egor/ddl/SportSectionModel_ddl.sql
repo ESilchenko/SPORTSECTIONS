@@ -1,7 +1,8 @@
 /*==============================================================*/
 /* DBMS name:      ORACLE Version 11g                           */
-/* Created on:     16.02.2016 17:03:17                          */
+/* Created on:     17.02.2016 15:11:03                          */
 /*==============================================================*/
+
 
 /*==============================================================*/
 /* Table: BRANCH                                                */
@@ -475,6 +476,7 @@ create table USERS
    EMPLOYEE_ID          INTEGER              not null,
    LOGIN                VARCHAR2(50 CHAR)    not null,
    PASSWD               VARCHAR2(100 CHAR)   not null,
+   FIRST_LOGIN          CHAR(1 CHAR)         default 'Y' not null,
    CREATED_BY           VARCHAR2(40 CHAR)    not null,
    CREATED_DATE         DATE                 default SYSDATE not null,
    constraint PK_USER_ID primary key (USER_ID)
@@ -499,6 +501,10 @@ comment on column USERS.LOGIN is
 
 comment on column USERS.PASSWD is
 'Пароль'
+/
+
+comment on column USERS.FIRST_LOGIN is
+'Флаг первого входа'
 /
 
 comment on column USERS.CREATED_BY is
@@ -568,38 +574,5 @@ CREATE SEQUENCE USERS_SEQ
 START WITH 1
 INCREMENT BY 1
 NOMAXVALUE;
-/
-
-
-CREATE OR REPLACE TRIGGER EMPLOYEES_EMPLOYEE_ID_TRG
-BEFORE INSERT ON EMPLOYEES
-FOR EACH ROW
-BEGIN
-  IF :NEW.EMPLOYEE_ID IS NULL THEN
-    SELECT EMPLOYEES_SEQ.NEXTVAL INTO :NEW.EMPLOYEE_ID FROM DUAL;
-  END IF;
-END;
-/
-
-
-CREATE OR REPLACE TRIGGER ROLES_ROLE_ID_TRG
-BEFORE INSERT ON ROLES
-FOR EACH ROW
-BEGIN
-  IF :NEW.ROLE_ID IS NULL THEN
-    SELECT ROLES_SEQ.NEXTVAL INTO :NEW.ROLE_ID FROM DUAL;
-  END IF;
-END;
-/
-
-
-CREATE OR REPLACE TRIGGER USERS_USER_ID_TRG
-BEFORE INSERT ON USERS
-FOR EACH ROW
-BEGIN
-  IF :NEW.USER_ID IS NULL THEN
-    SELECT USERS_SEQ.NEXTVAL INTO :NEW.USER_ID FROM DUAL;
-  END IF;
-END;
 /
 

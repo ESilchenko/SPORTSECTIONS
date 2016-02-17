@@ -1,0 +1,15 @@
+drop sequence roles_seq;
+drop sequence users_seq;
+drop sequence employees_seq;
+drop trigger roles_role_id_trg;
+drop trigger users_user_id_trg;
+drop trigger employees_employee_id_trg;
+drop table roles;
+drop table users;
+drop table employees;
+drop table training;
+drop table clients_parent;
+drop table contract;
+drop table medical_certificate;
+drop table clients_children;
+drop table branch;

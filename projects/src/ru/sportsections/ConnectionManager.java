@@ -1,5 +1,6 @@
 package ru.sportsections;
 
+import javax.swing.*;
 import java.sql.*;
 import java.math.*;
 
@@ -29,6 +30,8 @@ public class ConnectionManager {
             connection = DriverManager.getConnection(connStr, connLogin, connPassword);
         } catch (SQLException e) {
             System.out.println("Ошибка подключения! Проверьте настройки подключения или доступность базы!");
+            JOptionPane.showMessageDialog(null, "Oracle Error " + e.getErrorCode() + ". Ошибка подключения к базе! Проверьте настройки подключения или доступность базы!",
+                                         "Ошибка входа в систему", JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
         }
         //===================================================================

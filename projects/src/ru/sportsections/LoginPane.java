@@ -16,23 +16,23 @@ import java.sql.Statement;
  */
 public class LoginPane extends JPanel {
     //Переменные
-    private String inputLoginField;
+    public static String inputLoginField;
     private String inputPasswordField;
     private String hashPassword;
     private Connection connection = null;
     private Statement statement = null;
     private ResultSet resultSet = null;
     //Конструкторы
-    JButton loginButton = new JButton("Login");
-    JButton cancelButton = new JButton("Cancel");
+    JButton loginButton = new JButton("Войти");
+    JButton cancelButton = new JButton("Выйти");
     JTextField loginField = new JTextField(10);
     JPasswordField passwordField = new JPasswordField(10);
-    JLabel loginLabel = new JLabel("Username:");
-    JLabel passwordLabel = new JLabel("Password:");
+    JLabel loginLabel = new JLabel("Введите логин:   ");
+    JLabel passwordLabel = new JLabel("Введите пароль:");
     //===================================================================
     public LoginPane() {
         setLayout(new GridBagLayout());
-        setBorder(new TitledBorder("Login"));
+        setBorder(new TitledBorder("Окно входа в систему"));
         //===================================================================
         //Располагаем лейблы
         GridBagConstraints gbc = new GridBagConstraints();
@@ -88,26 +88,66 @@ public class LoginPane extends JPanel {
                 }
                 //===================================================================
                 //Готовим запрос в базу для проверки пользователя
-                String checkUser = "select count(user_id) as cnt from users " +
-                                   "where lower(login) = lower('" + inputLoginField + "')" +
-                                   " and lower(passwd) = lower('" + hashPassword + "')";
+                String checkUser = "select count(u.user_id) as cnt, u.first_login, r.role from users u " +
+                                   "inner join roles r " +
+                                   "on u.user_id = r.user_id " +
+                                   "where lower(u.login) = lower('" + inputLoginField + "')" +
+                                   " and lower(u.passwd) = lower('" + hashPassword + "') " +
+                                   "group by u.first_login, r.role";
                 //===================================================================
                 //Подключаемся к базе и проверяем пользователя
                 connection = ConnectionManager.getConnection();
                 try {
                     statement = connection.createStatement();
                     resultSet = statement.executeQuery(checkUser);
-                    resultSet.next();
-                    int cnt = resultSet.getInt("cnt");
-                    if (cnt == 1) {
-                        JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему!", "Успех", JOptionPane.INFORMATION_MESSAGE);
+                    //===================================================================
+                    //Параметры признака первого входа в систему и роли.
+                    int cnt;
+                    String first_login;
+                    String role;
+                    //===================================================================
+                    //Проверяем, вернул ли запрос какую-нибудь строку по пользователю
+                    //Если база не вернула строк, то присваиваем технические значения переменным
+                    if (!resultSet.isBeforeFirst()) {
+                        cnt = 0;
+                        first_login = "N";
+                        role = "UNKNOWN";
+                     //===================================================================
+                     //Если база вернула строку, то присваиваем значения переменным из строки
                     } else {
-                        JOptionPane.showMessageDialog(null, "Пользователя не существует или не подходит пароль!", "Ошибка входа в систему", JOptionPane.ERROR_MESSAGE);
+                        resultSet.next();
+                        cnt = resultSet.getInt("cnt");
+                        first_login = resultSet.getString("first_login");
+                        role = resultSet.getString("role");
                     }
+                    //===================================================================
+                    //Если пользователь есть, и он входит первый раз, ему необходимо сменить пароль
+                    if (cnt == 1 && first_login.equals("Y")) {
+                        JOptionPane.showMessageDialog(null, "Вы первый раз вошли в систему. Вам необходимо сменить пароль.", "Необходима смена пароля!", JOptionPane.INFORMATION_MESSAGE);
+                        Controller.getChangePasswordPane(Controller.frame);
+                    //===================================================================
+                    //Если пользователь есть, и он входит не первый раз, в зависимости от его роли, ему формируется его рабочее окно
+                    } else  if (cnt == 1 && first_login.equals("N")){
+                        if (role.equals("TECH_ADMIN")) {
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Технический Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                            Controller.getTechnicalAdminPane(Controller.frame);
+                        } else if (role.equals("ADMIN")) {
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                        } else if (role.equals("OPERATOR")) {
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Оператор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    //===================================================================
+                    //Если пользователь нет или пароль не подходит, то выводится сообщение об ошибке
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Пользователя не существует или не подходит пароль!", "Ошибка входа в систему!", JOptionPane.ERROR_MESSAGE);
+                    }
+                    //===================================================================
+                    //Закрываем работу с базой
                     resultSet.close();
                     statement.close();
                     connection.close();
                 } catch (SQLException e1) {
+                    JOptionPane.showMessageDialog(null, "Oracle Error - " + e1.getMessage(), "Запрос в базу содержит ошибки", JOptionPane.ERROR_MESSAGE);
                     e1.printStackTrace();
                 }
             }
