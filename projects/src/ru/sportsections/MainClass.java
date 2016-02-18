@@ -6,7 +6,7 @@ package ru.sportsections;
 public class MainClass {
     public static void main(String[] args) {
         //Инициализация первоначального окна программы
-        Controller controller = new Controller();
+        new Controller();
     }
 
 }

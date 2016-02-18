@@ -7,7 +7,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -21,14 +20,14 @@ public class ChangePasswordPane extends JPanel {
     private String hashPassword;
     private Connection connection = null;
     private Statement statement = null;
-    private ResultSet resultSet = null;
+    private int resultUpdate = 0;
     private String first_login = "N";
     //Конструкторы
     JButton changePasswordButton = new JButton("Сохранить");
     JButton cancelButton = new JButton("Выйти");
     JPasswordField newPasswordField = new JPasswordField(10);
     JPasswordField confirmNewPasswordField = new JPasswordField(10);
-    JLabel newPasswordLabel = new JLabel("Введите новый пароль:         ");
+    JLabel newPasswordLabel = new JLabel("Введите новый пароль:");
     JLabel confirmNewPasswordLabel = new JLabel("Подтвердите новый пароль:");
     //===================================================================
     public ChangePasswordPane() {
@@ -39,6 +38,7 @@ public class ChangePasswordPane extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         add(newPasswordLabel, gbc);
         gbc.gridy++;
         add(confirmNewPasswordLabel, gbc);
@@ -58,7 +58,8 @@ public class ChangePasswordPane extends JPanel {
         gbc.gridy++;
         gbc.gridwidth = 1;
         gbc.weightx = 0;
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
         add(changePasswordButton, gbc);
         gbc.gridx++;
         add(cancelButton, gbc);
@@ -82,7 +83,7 @@ public class ChangePasswordPane extends JPanel {
                 //===================================================================
                 //Сравниваем значения из двух полей. Если они различаются, уведомляем пользователя
                 if (!inputNewPasswordField.equals(inputConfirmNewPasswordField)) {
-                    JOptionPane.showMessageDialog(null, "Новый пароль и его подтверждение не совпадают! Проверьте правильность ввода", "Ошибка смены пароля!", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Новый пароль и его подтверждение не совпадают! Проверьте правильность ввода!", "Ошибка смены пароля!", JOptionPane.ERROR_MESSAGE);
                 //===================================================================
                 //Если значения из двух полей совпадают, тогда хешируем пароль для передачи в базу
                 } else {
@@ -93,71 +94,50 @@ public class ChangePasswordPane extends JPanel {
                     } catch (NoSuchAlgorithmException e1) {
                         e1.printStackTrace();
                     }
+                    //===================================================================
+                    //Готовим запрос в базу для обновления пароля пользователя
+                    String updateUserPassword = "update users set passwd = '" + hashPassword + "', " +
+                            "first_login = '" + first_login + "', " +
+                            "created_by = '" + LoginPane.inputLoginField + "', " +
+                            "created_date = sysdate " +
+                            "where lower(login) = lower('" + LoginPane.inputLoginField + "')";
+                    System.out.println(updateUserPassword);
+                    //===================================================================
+                    //Подключаемся к базе и проверяем пользователя
+                    connection = ConnectionManager.getConnection();
+                    try {
+                        statement = connection.createStatement();
+                        resultUpdate = statement.executeUpdate(updateUserPassword);
+                        //===================================================================
+                        //Проверяем, обновил запрос пароль в базе или нет
+                        //Если база вернула 0 строк, то пароль не обновлён. Пугаем пользователя страшным сообщением закрываем программу с ошибкой.
+                        if (resultUpdate == 0) {
+                            JOptionPane.showMessageDialog(null, "Всё очень плохо! Никуда не уходите, за вами уже выехали!", "Неизвестная ошибка! Программа будет закрыта!", JOptionPane.ERROR_MESSAGE);
+                            System.out.println(updateUserPassword);
+                            System.exit(1);
+                            //===================================================================
+                            //Если база вернула 1 строку, то пароль обновлён успешно. Возвращаем пользователя на окно логина
+                        } else if (resultUpdate == 1) {
+                            JOptionPane.showMessageDialog(null, "Смена пароля прошла успешно. Вам нужно войти в систему с новым паролем.", "Пароль успешно обновлён", JOptionPane.INFORMATION_MESSAGE);
+                            Controller.getLoginPane(Controller.frame);
+                            //===================================================================
+                            //Если база вернула не 1 строку и не 0 строк, то что-то пошло не так и обновилось больше строк чем нужно.
+                            //Это плохо. Ищи свищи теперь, что произошло. Пугаем пользователя страшным сообщением и закрываем программу с ошибкой.
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Всё очень плохо! Никуда не уходите, за вами уже выехали!", "Неизвестная ошибка! Программа будет закрыта!", JOptionPane.ERROR_MESSAGE);
+                            System.out.println(updateUserPassword);
+                            System.exit(1);
+                        }
+                        //===================================================================
+                        //Закрываем работу с базой
+                        statement.close();
+                        connection.close();
+                    } catch (SQLException e1) {
+                        JOptionPane.showMessageDialog(null, "Oracle Error - " + e1.getMessage(), "Запрос в базу содержит ошибки!", JOptionPane.ERROR_MESSAGE);
+                        e1.printStackTrace();
+                    }
                 }
-                //===================================================================
-                //Готовим запрос в базу для обновления пароля пользователя
-                String updateUserPassword = "update users set passwd = '" + hashPassword + "', " +
-                        "first_login = '" + first_login + "', " +
-                        "created_by = '" + LoginPane.inputLoginField + "', " +
-                        "created_date = sysdate " +
-                        "where lower(login) = lower('" + LoginPane.inputLoginField + "')";
-                System.out.println(updateUserPassword);
-//                //===================================================================
-//                //Подключаемся к базе и проверяем пользователя
-//                connection = ConnectionManager.getConnection();
-//                try {
-//                    statement = connection.createStatement();
-//                    resultSet = statement.executeQuery(updateUserPassword);
-//                    //===================================================================
-//                    //Параметры признака первого входа в систему и роли.
-//                    int cnt;
-//                    String first_login;
-//                    String role;
-//                    //===================================================================
-//                    //Проверяем, вернул ли запрос какую-нибудь строку по пользователю
-//                    //Если база не вернула строк, то присваиваем технические значения переменным
-//                    if (!resultSet.isBeforeFirst()) {
-//                        cnt = 0;
-//                        first_login = "N";
-//                        role = "UNKNOWN";
-//                        //===================================================================
-//                        //Если база вернула строку, то присваиваем значения переменным из строки
-//                    } else {
-//                        resultSet.next();
-//                        cnt = resultSet.getInt("cnt");
-//                        first_login = resultSet.getString("first_login");
-//                        role = resultSet.getString("role");
-//                    }
-//                    //===================================================================
-//                    //Если пользователь есть, и он входит первый раз, ему необходимо сменить пароль
-//                    if (cnt == 1 && first_login.equals("Y")) {
-//                        JOptionPane.showMessageDialog(null, "Вы первый раз вошли в систему. Вам необходимо сменить пароль.", "Необходима смена пароля!", JOptionPane.INFORMATION_MESSAGE);
-//                        Controller.getChangePasswordPane(Controller.frame);
-//                        //===================================================================
-//                        //Если пользователь есть, и он входит не первый раз, в зависимости от его роли, ему формируется его рабочее окно
-//                    } else  if (cnt == 1 && first_login.equals("N")){
-//                        if (role.equals("TECH_ADMIN")) {
-//                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Технический Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
-//                            Controller.getTechnicalAdminPane(Controller.frame);
-//                        } else if (role.equals("ADMIN")) {
-//                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
-//                        } else if (role.equals("OPERATOR")) {
-//                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Оператор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
-//                        }
-//                        //===================================================================
-//                        //Если пользователь нет или пароль не подходит, то выводится сообщение об ошибке
-//                    } else {
-//                        JOptionPane.showMessageDialog(null, "Пользователя не существует или не подходит пароль!", "Ошибка входа в систему!", JOptionPane.ERROR_MESSAGE);
-//                    }
-//                    //===================================================================
-//                    //Закрываем работу с базой
-//                    resultSet.close();
-//                    statement.close();
-//                    connection.close();
-//                } catch (SQLException e1) {
-//                    JOptionPane.showMessageDialog(null, "Oracle Error - " + e1.getMessage(), "Запрос в базу содержит ошибки", JOptionPane.ERROR_MESSAGE);
-//                    e1.printStackTrace();
-//                }
+
             }
         });
     }

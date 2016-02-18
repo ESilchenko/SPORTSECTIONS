@@ -51,9 +51,10 @@ public class Controller {
     //Метод формирования JPanel технического администратора
     public static void getTechnicalAdminPane(JFrame frame) {
         JPanel panelTechnicalAdmin = new JPanel (new GridBagLayout());
-        panelTechnicalAdmin.setBorder(new EmptyBorder(20,20,20,20));
+        //panelTechnicalAdmin.setBorder(new EmptyBorder(20,20,20,20));
+        //panelTechnicalAdmin.
         frame.setContentPane(panelTechnicalAdmin);
-        frame.add(new TechnicalAdminPane());
+        frame.add(new TechnicalAdminPane()).setLocation(1,1);
         frame.setVisible(true);
     }
 }

@@ -27,7 +27,7 @@ public class LoginPane extends JPanel {
     JButton cancelButton = new JButton("Выйти");
     JTextField loginField = new JTextField(10);
     JPasswordField passwordField = new JPasswordField(10);
-    JLabel loginLabel = new JLabel("Введите логин:   ");
+    JLabel loginLabel = new JLabel("Введите логин:");
     JLabel passwordLabel = new JLabel("Введите пароль:");
     //===================================================================
     public LoginPane() {
@@ -38,6 +38,7 @@ public class LoginPane extends JPanel {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         add(loginLabel, gbc);
         gbc.gridy++;
         add(passwordLabel, gbc);
@@ -123,18 +124,18 @@ public class LoginPane extends JPanel {
                     //===================================================================
                     //Если пользователь есть, и он входит первый раз, ему необходимо сменить пароль
                     if (cnt == 1 && first_login.equals("Y")) {
-                        JOptionPane.showMessageDialog(null, "Вы первый раз вошли в систему. Вам необходимо сменить пароль.", "Необходима смена пароля!", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Вы первый раз вошли в систему. Вам необходимо сменить пароль.", "Необходима смена пароля", JOptionPane.INFORMATION_MESSAGE);
                         Controller.getChangePasswordPane(Controller.frame);
                     //===================================================================
                     //Если пользователь есть, и он входит не первый раз, в зависимости от его роли, ему формируется его рабочее окно
                     } else  if (cnt == 1 && first_login.equals("N")){
                         if (role.equals("TECH_ADMIN")) {
-                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Технический Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Технический Администратор.", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
                             Controller.getTechnicalAdminPane(Controller.frame);
                         } else if (role.equals("ADMIN")) {
-                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Администратор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Администратор.", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
                         } else if (role.equals("OPERATOR")) {
-                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Оператор!", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
+                            JOptionPane.showMessageDialog(null, "Вы успешно вошли в систему как Оператор.", "Успешный вход в систему", JOptionPane.INFORMATION_MESSAGE);
                         }
                     //===================================================================
                     //Если пользователь нет или пароль не подходит, то выводится сообщение об ошибке
@@ -147,7 +148,7 @@ public class LoginPane extends JPanel {
                     statement.close();
                     connection.close();
                 } catch (SQLException e1) {
-                    JOptionPane.showMessageDialog(null, "Oracle Error - " + e1.getMessage(), "Запрос в базу содержит ошибки", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Oracle Error - " + e1.getMessage(), "Запрос в базу содержит ошибки!", JOptionPane.ERROR_MESSAGE);
                     e1.printStackTrace();
                 }
             }
